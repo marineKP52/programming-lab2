@@ -4,13 +4,13 @@
     {
         static void Main(string[] args)
         {
-            Composite university = new Composite("КПІ ім. Ігоря Сікорського");
+            Composite university = new Composite("Igor Sikorsky KPI");
             
-            Composite fam = new Composite("Факультет прикладної математики");
-            Composite iasa = new Composite("Інститут прикладного системного аналізу");
+            Composite fam = new Composite("Faculty of Applied Mathematics");
+            Composite iasa = new Composite("Institute for Applied Systems Analysis");
             
-            Composite sp = new Composite("Кафедра системного програмування");
-            Composite ai = new Composite("Кафедра штучного інтелекту");
+            Composite sp = new Composite("Department of System Programming");
+            Composite ai = new Composite("Department of Artificial Intelligence");
 
             university.Add(fam);
             university.Add(iasa);
@@ -25,14 +25,21 @@
             ai.Add(new Employee("Volodymyr", "AI Systems Proffessor", 4, 30000m));
             ai.Add(new Employee("Vasyl", "Office Coordinator", 20, 32500m));
 
-            
+            Console.WriteLine("==========Salary information=========");
+            university.ShowInfo(0);
+
+            Console.WriteLine();
+
+            Console.WriteLine("==========Salary distribution=========");
+            university.TryRecievePayment(170000m);
+            Console.WriteLine($"Remainder: {university.Balance} UAH.");
         }
     }
 
     public abstract class StructuralComponent
     {
         protected string Name { get; }
-        protected decimal Balance { get; set; }
+        public decimal Balance { get; protected set; }
 
         protected StructuralComponent(string name)
         {
@@ -57,7 +64,16 @@
         {
             Profession = profession;
             Expierence = expierence;
-            _salary = salary;
+            
+            if (salary < 0)
+            {
+                Console.WriteLine("Не можна встановити від'ємну зарплату.");
+                _salary = 0;
+            }
+            else
+            {
+                _salary = salary;
+            }
         }
 
         public override void Add(StructuralComponent structuralComponent)
@@ -74,7 +90,7 @@
         {
             if (sum < _salary)
             {
-                Console.WriteLine($"Employee {Name} did not recieve salary. Not enough money.");
+                Console.WriteLine($"Employee {Name} did not recieve salary. Incorrect sum.");
                 return false;
             }
             
@@ -91,7 +107,7 @@
 
         public override void ShowInfo(int depth)
         {
-            Console.WriteLine($"{new string('\t', depth)} {Name}, {Profession}, {Expierence} years: {_salary} UAH.");
+            Console.WriteLine($"{new string(' ', depth*2)} {Name}, {Profession}, {Expierence} years: {_salary} UAH.");
         }
     }
 
@@ -118,7 +134,7 @@
         {
             if (sum < GetRequiredSum())
             {
-                Console.WriteLine($"Structural component {Name} did not recieve money. Not enough money.");
+                Console.WriteLine($"Structural component {Name} did not recieve payment. Not enough money.");
                 return false;
             }
 
@@ -130,7 +146,7 @@
             {
                 decimal childPayment = child.GetRequiredSum();
                 
-                if (child.TryRecievePayment(childPayment) && Balance >= childPayment)
+                if (Balance >= childPayment && child.TryRecievePayment(childPayment))
                 {
                     Balance -= childPayment;
                 }
@@ -153,7 +169,7 @@
 
         public override void ShowInfo(int depth)
         {
-            Console.WriteLine($"{new string('\t', depth)} {Name}. Total sum: {GetRequiredSum()}.");
+            Console.WriteLine($"{new string(' ', depth*2)} {Name}. Total sum: {GetRequiredSum()} UAH.");
 
             foreach (StructuralComponent child in _children)
             {
