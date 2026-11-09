@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            Composite educationalInstitution = new Composite("Навчальний заклад");
+            Composite university = new Composite("КПІ ім. Ігоря Сікорського");
             
             Composite fam = new Composite("Факультет прикладної математики");
             Composite iasa = new Composite("Інститут прикладного системного аналізу");
@@ -12,30 +12,51 @@
             Composite sp = new Composite("Кафедра системного програмування");
             Composite ai = new Composite("Кафедра штучного інтелекту");
 
-            educationalInstitution.Add(fam);
-            educationalInstitution.Add(iasa);
+            university.Add(fam);
+            university.Add(iasa);
 
             iasa.Add(sp);
             iasa.Add(ai);
 
-            fam.Add(new Employee("Anna", 30000m));
-            fam.Add(new Employee("Viktor", 25000m));
-            sp.Add(new Employee("Sarah", 15000m));
-            ai.Add(new Employee("Svetlana", 35000m));
-            ai.Add(new Employee("Volodymyr", 30000m));
-            ai.Add(new Employee("Vasyl", 32500m));
+            fam.Add(new Employee("Anna", "Math Professor", 5, 30000m));
+            fam.Add(new Employee("Viktor", "Math Professor Assistant", 2, 15000m));
+            sp.Add(new Employee("Sarah", "Office Coordinator", 3, 25000m));
+            ai.Add(new Employee("Svetlana", "Data Science Professor", 15, 35000m));
+            ai.Add(new Employee("Volodymyr", "AI Systems Proffessor", 4, 30000m));
+            ai.Add(new Employee("Vasyl", "Office Coordinator", 20, 32500m));
 
-            educationalInstitution.Display(1);
+            
         }
+    }
+
+    public abstract class StructuralComponent
+    {
+        protected string Name { get; }
+        protected decimal Balance { get; set; }
+
+        protected StructuralComponent(string name)
+        {
+            Name = name;
+            Balance = 0m;
+        }
+
+        public abstract void Add(StructuralComponent structuralComponent);
+        public abstract void Remove(StructuralComponent structuralComponent);
+        public abstract bool TryRecievePayment(decimal sum);
+        public abstract decimal GetRequiredSum();
+        public abstract void ShowInfo(int depth);
     }
 
     public class Employee : StructuralComponent
     {
         private readonly decimal _salary;
-        private string Profession { get; }
+        public string Profession { get; }
+        public int Expierence { get; }
 
-        public Employee(string name, decimal salary) : base(name)
+        public Employee(string name, string profession, int expierence, decimal salary) : base(name)
         {
+            Profession = profession;
+            Expierence = expierence;
             _salary = salary;
         }
 
@@ -49,18 +70,32 @@
             Console.WriteLine("Неможливо: це співробітник");
         }
 
-        public override decimal Pay()
+        public override bool TryRecievePayment(decimal sum)
+        {
+            if (sum < _salary)
+            {
+                Console.WriteLine($"Employee {Name} did not recieve salary. Not enough money.");
+                return false;
+            }
+            
+            Balance = sum;
+
+            Console.WriteLine($"Employee {Name}: recieved {sum} UAH.");
+            return true;
+        }
+
+        public override decimal GetRequiredSum()
         {
             return _salary;
         }
 
-        public override void Display(int depth)
+        public override void ShowInfo(int depth)
         {
-            Console.WriteLine($"{new string('-', depth)} {Name}: виплачено {_salary} грн.");
+            Console.WriteLine($"{new string('\t', depth)} {Name}, {Profession}, {Expierence} years: {_salary} UAH.");
         }
     }
 
-    public class Composite : StructuralComponent 
+    public class Composite : StructuralComponent
     {
         private readonly List<StructuralComponent> _children = new List<StructuralComponent>();
 
@@ -79,42 +114,51 @@
             _children.Remove(structuralComponent);
         }
 
-        public override decimal Pay()
+        public override bool TryRecievePayment(decimal sum)
+        {
+            if (sum < GetRequiredSum())
+            {
+                Console.WriteLine($"Structural component {Name} did not recieve money. Not enough money.");
+                return false;
+            }
+
+            Balance = sum;
+
+            Console.WriteLine($"Structural component {Name}: recieved {sum} UAH.");
+
+            foreach (StructuralComponent child in _children)
+            {
+                decimal childPayment = child.GetRequiredSum();
+                
+                if (child.TryRecievePayment(childPayment) && Balance >= childPayment)
+                {
+                    Balance -= childPayment;
+                }
+            }
+
+            return true;
+        }
+
+        public override decimal GetRequiredSum()
         {
             decimal totalSum = 0;
 
             foreach (StructuralComponent child in _children)
             {
-                totalSum += child.Pay();
+                totalSum += child.GetRequiredSum();
             }
 
             return totalSum;
         }
 
-        public override void Display(int depth)
+        public override void ShowInfo(int depth)
         {
-            Console.WriteLine($"{new string('-', depth)} {Name}: виплачено {Pay()} грн.");
+            Console.WriteLine($"{new string('\t', depth)} {Name}. Total sum: {GetRequiredSum()}.");
 
             foreach (StructuralComponent child in _children)
             {
-                child.Display(depth + 2);
+                child.ShowInfo(depth + 2);
             }
         }
     }
-
-    public abstract class StructuralComponent
-    {
-        protected string Name { get; }
-
-        protected StructuralComponent(string name)
-        {
-            Name = name;
-        }
-
-        public abstract void Add(StructuralComponent structuralComponent);
-        public abstract void Remove(StructuralComponent structuralComponent);
-        public abstract decimal Pay();
-        public abstract void Display(int depth);
-    }
-
 }
