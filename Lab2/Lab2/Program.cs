@@ -1,9 +1,11 @@
 ﻿namespace Lab2
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
+            // Task 1
+
             /*Composite university = new Composite("Igor Sikorsky KPI");
             
             Composite fam = new Composite("Faculty of Applied Mathematics");
@@ -35,151 +37,12 @@
             Console.WriteLine($"Remainder: {university.Balance} UAH.");*/
 
 
+            // Task 2
+
 
         }
     }
-
-    public abstract class StructuralComponent
-    {
-        protected string Name { get; }
-        public decimal Balance { get; protected set; }
-
-        protected StructuralComponent(string name)
-        {
-            Name = name;
-            Balance = 0m;
-        }
-
-        public abstract void Add(StructuralComponent structuralComponent);
-        public abstract void Remove(StructuralComponent structuralComponent);
-        public abstract bool TryRecievePayment(decimal sum);
-        public abstract decimal GetRequiredSum();
-        public abstract void ShowInfo(int depth);
-    }
-
-    public class Employee : StructuralComponent
-    {
-        private readonly decimal _salary;
-        public string Profession { get; }
-        public int Expierence { get; }
-
-        public Employee(string name, string profession, int expierence, decimal salary) : base(name)
-        {
-            Profession = profession;
-            Expierence = expierence;
-            
-            if (salary < 0)
-            {
-                Console.WriteLine("Не можна встановити від'ємну зарплату.");
-                _salary = 0;
-            }
-            else
-            {
-                _salary = salary;
-            }
-        }
-
-        public override void Add(StructuralComponent structuralComponent)
-        {
-            Console.WriteLine("Неможливо: це співробітник");
-        }
-
-        public override void Remove(StructuralComponent structuralComponent)
-        {
-            Console.WriteLine("Неможливо: це співробітник");
-        }
-
-        public override bool TryRecievePayment(decimal sum)
-        {
-            if (sum < _salary)
-            {
-                Console.WriteLine($"Employee {Name} did not recieve salary. Incorrect sum.");
-                return false;
-            }
-            
-            Balance = sum;
-
-            Console.WriteLine($"Employee {Name}: recieved {sum} UAH.");
-            return true;
-        }
-
-        public override decimal GetRequiredSum()
-        {
-            return _salary;
-        }
-
-        public override void ShowInfo(int depth)
-        {
-            Console.WriteLine($"{new string(' ', depth*2)} {Name}, {Profession}, {Expierence} years: {_salary} UAH.");
-        }
-    }
-
-    public class Composite : StructuralComponent
-    {
-        private readonly List<StructuralComponent> _children = new List<StructuralComponent>();
-
-        public Composite(string name) : base(name)
-        {
-
-        }
-
-        public override void Add(StructuralComponent structuralComponent)
-        {
-            _children.Add(structuralComponent);
-        }
-
-        public override void Remove(StructuralComponent structuralComponent)
-        {
-            _children.Remove(structuralComponent);
-        }
-
-        public override bool TryRecievePayment(decimal sum)
-        {
-            if (sum < GetRequiredSum())
-            {
-                Console.WriteLine($"Structural component {Name} did not recieve payment. Not enough money.");
-                return false;
-            }
-
-            Balance = sum;
-
-            Console.WriteLine($"Structural component {Name}: recieved {sum} UAH.");
-
-            foreach (StructuralComponent child in _children)
-            {
-                decimal childPayment = child.GetRequiredSum();
-                
-                if (Balance >= childPayment && child.TryRecievePayment(childPayment))
-                {
-                    Balance -= childPayment;
-                }
-            }
-
-            return true;
-        }
-
-        public override decimal GetRequiredSum()
-        {
-            decimal totalSum = 0;
-
-            foreach (StructuralComponent child in _children)
-            {
-                totalSum += child.GetRequiredSum();
-            }
-
-            return totalSum;
-        }
-
-        public override void ShowInfo(int depth)
-        {
-            Console.WriteLine($"{new string(' ', depth*2)} {Name}. Total sum: {GetRequiredSum()} UAH.");
-
-            foreach (StructuralComponent child in _children)
-            {
-                child.ShowInfo(depth + 2);
-            }
-        }
-    }
+    
 
     public enum CoffeType
     {
